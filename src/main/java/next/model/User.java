@@ -29,6 +29,12 @@ public class User {
         return email;
     }
 
+    public void changeInformation(String password, String name, String email) {
+        this.password = password;
+        this.name = name;
+        this.email = email;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -37,6 +43,17 @@ public class User {
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + ((userId == null) ? 0 : userId.hashCode());
         return result;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("User{");
+        sb.append("userId='").append(userId).append('\'');
+        sb.append(", password='").append(password).append('\'');
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", email='").append(email).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 
     @Override

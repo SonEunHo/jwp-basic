@@ -1,6 +1,9 @@
 package next.web;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.sql.DatabaseMetaData;
+import java.util.Objects;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -25,7 +28,16 @@ public class CreateUserServlet extends HttpServlet {
         User user = new User(req.getParameter("userId"), req.getParameter("password"), req.getParameter("name"),
                 req.getParameter("email"));
         log.debug("user : {}", user);
-        DataBase.addUser(user);
+
+        User alreadySignedUser = DataBase.findUserById(user.getUserId());
+        if(Objects.isNull(alreadySignedUser)) {
+            log.debug("[signup] user: {}", user);
+            DataBase.addUser(user);
+        } else {
+            log.debug("[change Member Information before: {}, after: {}", alreadySignedUser, user);
+            alreadySignedUser.changeInformation(user.getPassword(), user.getName(), user.getEmail());
+        }
+
         resp.sendRedirect("/user/list");
     }
 }
