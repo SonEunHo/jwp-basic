@@ -1,6 +1,7 @@
 package next.web;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -8,6 +9,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import core.db.DataBase;
 import next.model.User;
@@ -18,9 +20,19 @@ public class UpdateUserServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        req.setAttribute("user", DataBase.findUserById(req.getParameter("userId")));
-        RequestDispatcher rd = req.getRequestDispatcher("update.jsp");
-        rd.forward(req, resp);
+        HttpSession httpSession = req.getSession();
+        User user = (User) httpSession.getAttribute("user");
+        if (Objects.isNull(user)) {
+            resp.sendRedirect("/user/login.html");
+        } else {
+            if(!user.getUserId().equals(req.getParameter("userId"))) {
+                resp.sendError(400);
+            } else {
+                req.setAttribute("user", DataBase.findUserById(req.getParameter("userId")));
+                RequestDispatcher rd = req.getRequestDispatcher("update.jsp");
+                rd.forward(req, resp);
+            }
+        }
     }
 
     @Override
