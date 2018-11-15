@@ -79,7 +79,7 @@
       <form name="question" method="post" action="/user/update">
         <div class="form-group">
           <label for="userId">사용자 아이디</label>
-          <input class="form-control" id="userId" name="userId" placeholder="User ID" value=${user.userId}>
+          <input type="hidden" class="form-control" id="userId" name="userId" placeholder="User ID" value=${user.userId}>
         </div>
         <div class="form-group">
           <label for="password">비밀번호</label>
