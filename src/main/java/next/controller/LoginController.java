@@ -10,20 +10,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import core.db.DataBase;
+import next.controller.annotation.RequestMapping;
 import next.model.User;
 
-@WebServlet(value = { "/users/login", "/users/loginForm" })
-public class LoginController extends HttpServlet {
+public class LoginController implements Controller {
     private static final long serialVersionUID = 1L;
+    private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    @RequestMapping(method = "GET", value = "/users/login")
+    public void loginPage(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         forward("/user/login.jsp", req, resp);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    @RequestMapping(method = "POST", value = "/users/login")
+    public void login(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String userId = req.getParameter("userId");
         String password = req.getParameter("password");
         User user = DataBase.findUserById(userId);

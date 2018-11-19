@@ -13,15 +13,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.db.DataBase;
+import next.controller.annotation.RequestMapping;
 import next.model.User;
 
-@WebServlet(value = { "/users/update", "/users/updateForm" })
-public class UpdateUserController extends HttpServlet {
+public class UpdateUserController implements Controller {
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(UpdateUserController.class);
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    @RequestMapping(method = "GET", value = "/users/updateForm")
+    protected void updateForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String userId = req.getParameter("userId");
         User user = DataBase.findUserById(userId);
         if (!UserSessionUtils.isSameUser(req.getSession(), user)) {
@@ -32,8 +32,8 @@ public class UpdateUserController extends HttpServlet {
         rd.forward(req, resp);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    @RequestMapping(method = "POST", value = "/users/update")
+    protected void update(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         User user = DataBase.findUserById(req.getParameter("userId"));
         if (!UserSessionUtils.isSameUser(req.getSession(), user)) {
             throw new IllegalStateException("다른 사용자의 정보를 수정할 수 없습니다.");
