@@ -8,10 +8,11 @@ import java.util.Map;
 
 import com.google.common.collect.Lists;
 
+import javafx.util.Pair;
 import next.controller.annotation.RequestMapping;
 
 public class RequestMapper {
-    static Map<String, Method> reqMap;
+    static Map<String, Pair<Method, Controller>> reqMap;
     static List<Controller> controllerList;
 
     static {
@@ -22,26 +23,27 @@ public class RequestMapper {
                                             new LoginController(),
                                             new ProfileController(),
                                             new UpdateUserController());
+        initRequestMap();
     }
 
     static void initRequestMap() {
         controllerList.stream().forEach(RequestMapper::makeRequestMap);
     }
 
-    static <T>  Map<String, Method> makeRequestMap(T controller) {
+    static  Map<String, Pair> makeRequestMap(Controller controller) {
         Method[] methods = controller.getClass().getDeclaredMethods();
-        Map<String, Method> reqMap = new HashMap<>();
+        Map<String, Pair> reqMap = new HashMap<>();
 
         for(Method m : methods) {
             RequestMapping annotation = m.getAnnotation(RequestMapping.class);
             if(annotation != null) {
-                reqMap.put(annotation.value(), m);
+                reqMap.put(annotation.value(), new Pair<>(m, controller));
             }
         }
         return reqMap;
     }
 
-    static Method getMethod(String requestResource) {
+    static Pair<Method, Controller> getMethod(String requestResource) {
         return reqMap.get(requestResource);
     }
 
