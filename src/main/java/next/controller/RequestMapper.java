@@ -16,7 +16,7 @@ public class RequestMapper {
     static List<Controller> controllerList;
 
     static {
-        reqMap = Collections.emptyMap();
+        reqMap = new HashMap<>();
         controllerList = Lists.newArrayList(new CreateUserController(),
                                             new HomeController(),
                                             new ListUserController(),
@@ -27,12 +27,15 @@ public class RequestMapper {
     }
 
     static void initRequestMap() {
-        controllerList.stream().forEach(RequestMapper::makeRequestMap);
+        for(Controller c : controllerList) {
+            reqMap.putAll(makeRequestMap(c));
+        }
+//        controllerList.stream().forEach(c->reqMap.putAll(makeRequestMap(c)));
     }
 
-    static  Map<String, Pair> makeRequestMap(Controller controller) {
+    static  Map<String, Pair<Method, Controller>> makeRequestMap(Controller controller) {
         Method[] methods = controller.getClass().getDeclaredMethods();
-        Map<String, Pair> reqMap = new HashMap<>();
+        Map<String, Pair<Method, Controller>> reqMap = new HashMap<>();
 
         for(Method m : methods) {
             RequestMapping annotation = m.getAnnotation(RequestMapping.class);
