@@ -21,7 +21,7 @@ public class LoginController implements Controller {
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 
-    @RequestMapping(method = "GET", value = "/users/login")
+    @RequestMapping(method = "GET", value = "/users/loginForm")
     public void loginPage(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         forward("/user/login.jsp", req, resp);
     }

@@ -16,6 +16,7 @@ import core.db.DataBase;
 import next.controller.annotation.RequestMapping;
 
 public class HomeController implements Controller {
+
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
 
