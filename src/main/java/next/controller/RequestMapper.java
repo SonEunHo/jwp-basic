@@ -1,14 +1,13 @@
 package next.controller;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Lists;
+import com.sun.tools.javac.util.Pair;
 
-import javafx.util.Pair;
 import next.controller.annotation.RequestMapping;
 
 public class RequestMapper {
