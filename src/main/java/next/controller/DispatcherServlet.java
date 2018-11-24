@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javafx.util.Pair;
+import next.controller.RequestMapper.RequestMapNode;
 
 @WebServlet("/")
 public class DispatcherServlet extends HttpServlet {
@@ -21,9 +21,9 @@ public class DispatcherServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        Pair<Method, Controller> pair = getRequestMethod(req);
-        Method m = pair.getKey();
-        Controller controller = pair.getValue();
+        RequestMapNode dispatch = getRequestMethod(req);
+        Method m = dispatch.method;
+        Controller controller = dispatch.controller;
         try {
             m.invoke(controller, req, resp);
         } catch (InvocationTargetException e) {
@@ -38,9 +38,9 @@ public class DispatcherServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        Pair<Method, Controller> pair = getRequestMethod(req);
-        Method m = pair.getKey();
-        Controller controller = pair.getValue();
+        RequestMapNode dispatch = getRequestMethod(req);
+        Method m = dispatch.method;
+        Controller controller = dispatch.controller;
         try {
             m.invoke(controller, req, resp);
         } catch (InvocationTargetException e) {
@@ -52,7 +52,7 @@ public class DispatcherServlet extends HttpServlet {
         }
     }
 
-    public Pair<Method, Controller> getRequestMethod(HttpServletRequest req) {
+    public RequestMapNode getRequestMethod(HttpServletRequest req) {
         //TODO requestUri가 맞을지..
         return RequestMapper.getMethod(req.getRequestURI());
     }
