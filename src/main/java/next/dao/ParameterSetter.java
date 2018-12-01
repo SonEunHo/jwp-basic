@@ -3,6 +3,7 @@ package next.dao;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+@FunctionalInterface
 public interface ParameterSetter {
-    void paramSet(PreparedStatement pstmt) throws SQLException;
+    void set(PreparedStatement pstmt) throws SQLException;
 }

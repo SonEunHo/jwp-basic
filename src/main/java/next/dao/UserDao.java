@@ -1,11 +1,6 @@
 package next.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -38,17 +33,13 @@ public class UserDao {
     }
 
     public List<User> findAll() throws SQLException {
-        final List<User> result = new ArrayList<>();
         final String sql = "SELECT userId, password, name, email FROM USERS";
-        template.executeQuery(sql, pstmt -> {}, resultSet -> {
-            while (resultSet.next()) {
-                result.add(new User(resultSet.getString("userId"),
-                                    resultSet.getString("password"),
-                                    resultSet.getString("name"),
-                                    resultSet.getString("email")));
-            }
+        return template.executeQuery(sql, pstmt -> {}, resultSet -> {
+            return new User(resultSet.getString("userId"),
+                            resultSet.getString("password"),
+                            resultSet.getString("name"),
+                            resultSet.getString("email"));
         });
-        return  result;
     }
 
     public User findByUserId(final String userId) throws SQLException {
@@ -57,13 +48,9 @@ public class UserDao {
         User user = template.executeForObject(sql, pstmt -> {
             pstmt.setString(1, userId);
         }, resultSet -> {
-            if (resultSet.next()) {
-                return new User(resultSet.getString("userId"), resultSet.getString("password"),
-                                resultSet.getString("name"),
-                                resultSet.getString("email"));
-            } else {
-                return null;
-            }
+            return new User(resultSet.getString("userId"), resultSet.getString("password"),
+                            resultSet.getString("name"),
+                            resultSet.getString("email"));
         });
 
         return user;
