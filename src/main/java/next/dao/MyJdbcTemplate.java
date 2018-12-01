@@ -4,8 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import org.springframework.jdbc.support.xml.SqlXmlFeatureNotImplementedException;
 
 public class MyJdbcTemplate {
     private Supplier<Connection> supplier;
@@ -16,10 +17,20 @@ public class MyJdbcTemplate {
     public void executeQuery(String query,
                              ParameterSetter paramSetter,
                              ResultSetConsumer resultSetConsumer) {
-        try(ResultSet rs = executeForResultSet(query, paramSetter)) {
+        ResultSet rs = null;
+        try (Connection con = supplier.get();
+            PreparedStatement pstmt = con.prepareStatement(query)) {
+            paramSetter.paramSet(pstmt);
+            rs = pstmt.executeQuery();
             resultSetConsumer.accept(rs);
         } catch (SQLException e) {
             throw new JdbcSqlException(e);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+            } catch (SQLException e) {
+                throw new JdbcSqlException("fail to close resultSet", e);
+            }
         }
     }
 
@@ -41,26 +52,23 @@ public class MyJdbcTemplate {
                          ResultSetExtractor<T> extractor) {
         T result = null;
 
-        try (ResultSet rs = executeForResultSet(query, paramSetter)) {
+        ResultSet rs = null;
+        try (Connection con = supplier.get();
+             PreparedStatement pstmt = con.prepareStatement(query)) {
+            paramSetter.paramSet(pstmt);
+            rs = pstmt.executeQuery();
             result = extractor.extract(rs);
         } catch (SQLException e) {
             throw new JdbcSqlException(e);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+            } catch (SQLException e) {
+                throw new JdbcSqlException("fail to close resultSet", e);
+            }
         }
 
         return result;
-    }
-
-    public ResultSet executeForResultSet(String query,
-                                         ParameterSetter paramSetter) {
-        ResultSet rs = null;
-        try(Connection con = supplier.get();
-            PreparedStatement pstmt = con.prepareStatement(query)) {
-            paramSetter.paramSet(pstmt);
-            rs = pstmt.executeQuery();
-        } catch (SQLException e) {
-            throw new JdbcSqlException(e);
-        }
-        return rs;
     }
 
     class JdbcSqlException extends RuntimeException {
@@ -69,6 +77,12 @@ public class MyJdbcTemplate {
 
         public JdbcSqlException(SQLException sqlException) {
             this(sqlException.getMessage());
+            this.sqlException = sqlException;
+        }
+
+        public JdbcSqlException(String msg, SQLException sqlException) {
+            super(msg);
+            this.msg = msg;
             this.sqlException = sqlException;
         }
 
