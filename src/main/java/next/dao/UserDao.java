@@ -8,110 +8,64 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import core.jdbc.ConnectionManager;
 import next.model.User;
 
 public class UserDao {
-    public void insert(User user) throws SQLException {
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        try {
-            con = ConnectionManager.getConnection();
-            String sql = "INSERT INTO USERS VALUES (?, ?, ?, ?)";
-            pstmt = con.prepareStatement(sql);
+    private static MyJdbcTemplate template =
+            new MyJdbcTemplate(ConnectionManager::getConnection);
+
+    public void insert(final User user) throws SQLException {
+        String sql = "INSERT INTO USERS VALUES (?, ?, ?, ?)";
+        template.executeUpdate(sql, pstmt -> {
             pstmt.setString(1, user.getUserId());
             pstmt.setString(2, user.getPassword());
             pstmt.setString(3, user.getName());
             pstmt.setString(4, user.getEmail());
-
-            pstmt.executeUpdate();
-        } finally {
-            if (pstmt != null) {
-                pstmt.close();
-            }
-
-            if (con != null) {
-                con.close();
-            }
-        }
+        });
     }
 
-    public void update(User user) throws SQLException {
-        // TODO 구현 필요함.
+    public void update(final User user) throws SQLException {
         final String sql = "Update USERS SET password = ?, name = ?, email = ? WHERE userid = ?";
-        Connection con = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            con = ConnectionManager.getConnection();
-            pstmt = con.prepareStatement(sql);
+        template.executeUpdate(sql, pstmt -> {
             pstmt.setString(1, user.getPassword());
             pstmt.setString(2, user.getName());
             pstmt.setString(3, user.getEmail());
             pstmt.setString(4, user.getUserId());
-            pstmt.executeUpdate();
-        } finally {
-            if(con != null) con.close();
-            if(pstmt != null) pstmt.close();
-        }
+        });
     }
 
     public List<User> findAll() throws SQLException {
-        List<User> result = new ArrayList<>();
-        Connection con = null;
-        ResultSet rs = null;
-        Statement st = null;
-
-        try {
-            con = ConnectionManager.getConnection();
-            String sql = "SELECT userId, password, name, email FROM USERS";
-            st = con.createStatement();
-            rs = st.executeQuery(sql);
-
-            while (rs.next()) {
-                result.add(new User(rs.getString("userId"),
-                                    rs.getString("password"),
-                                    rs.getString("name"),
-                                    rs.getString("email")));
+        final List<User> result = new ArrayList<>();
+        final String sql = "SELECT userId, password, name, email FROM USERS";
+        template.executeQuery(sql, pstmt -> {}, resultSet -> {
+            while (resultSet.next()) {
+                result.add(new User(resultSet.getString("userId"),
+                                    resultSet.getString("password"),
+                                    resultSet.getString("name"),
+                                    resultSet.getString("email")));
             }
-        } finally {
-            if(con != null) con.close();
-            if(rs != null) rs.close();
-            if(st != null) st.close();
-        }
-
-        return result;
+        });
+        return  result;
     }
 
-    public User findByUserId(String userId) throws SQLException {
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            con = ConnectionManager.getConnection();
-            String sql = "SELECT userId, password, name, email FROM USERS WHERE userid=?";
-            pstmt = con.prepareStatement(sql);
+    public User findByUserId(final String userId) throws SQLException {
+        final String sql = "SELECT userId, password, name, email FROM USERS WHERE userid=?";
+
+        User user = template.executeForObject(sql, pstmt -> {
             pstmt.setString(1, userId);
+        }, resultSet -> {
+            if (resultSet.next()) {
+                return new User(resultSet.getString("userId"), resultSet.getString("password"),
+                                resultSet.getString("name"),
+                                resultSet.getString("email"));
+            } else {
+                return null;
+            }
+        });
 
-            rs = pstmt.executeQuery();
-
-            User user = null;
-            if (rs.next()) {
-                user = new User(rs.getString("userId"), rs.getString("password"), rs.getString("name"),
-                        rs.getString("email"));
-            }
-
-            return user;
-        } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (pstmt != null) {
-                pstmt.close();
-            }
-            if (con != null) {
-                con.close();
-            }
-        }
+        return user;
     }
 }
