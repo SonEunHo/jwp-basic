@@ -10,6 +10,7 @@ String.prototype.format = function() {
 
 $(".answerWrite input[type=submit]").click(addAnswer);
 $(".article-util button[type=submit]").click(deleteAnswer);
+// $(".qna-comment").click(deleteAnswer);
 
 function addAnswer(e) {
   e.preventDefault();
@@ -27,10 +28,10 @@ function addAnswer(e) {
 
 function deleteAnswer(e) {
   e.preventDefault();
-  var queryString
+  var queryString = $("input[name=answerId]").serialize()
 
   $.ajax({
-    type: 'delete',
+    type: 'post',
     url : '/api/qna/deleteAnswer',
     data: queryString,
     dataType: 'json',
