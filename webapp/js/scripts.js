@@ -9,6 +9,7 @@ String.prototype.format = function() {
 };
 
 $(".answerWrite input[type=submit]").click(addAnswer);
+$(".article-util button[type=submit]").click(deleteAnswer);
 
 function addAnswer(e) {
   e.preventDefault();
@@ -24,10 +25,33 @@ function addAnswer(e) {
          });
 }
 
+function deleteAnswer(e) {
+  e.preventDefault();
+  var queryString
+
+  $.ajax({
+    type: 'delete',
+    url : '/api/qna/deleteAnswer',
+    data: queryString,
+    dataType: 'json',
+    error: onError,
+    success: onSuccessDeleteAnswer,
+         })
+}
+
 function onSuccess(json, status) {
   var answerTemplate = $("#answerTemplate").html();
   var template = answerTemplate.format(json.writer, new Date(json.createDate), json.contents, json.answerId);
   $(".qna-comment-slipp-articles").prepend(template);
+}
+
+function onSuccessDeleteAnswer(json, status) {
+  var resultStatus = json.status
+  if(resultStatus) {
+    $(this).closest('artice').remove();
+  } else {
+
+  }
 }
 
 function onError() {

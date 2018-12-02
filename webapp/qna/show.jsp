@@ -127,7 +127,7 @@
 				</li>
 				<li>
 					<form class="form-delete" action="/api/qna/deleteAnswer" method="POST">
-						<input type="hidden" name="answerId" value="{4}" />
+						<input type="hidden" name="answerId" value="{3}" />
 						<button type="submit" class="link-delete-article">삭제</button>
 					</form>
 				</li>

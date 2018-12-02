@@ -27,7 +27,7 @@ public class AddAnswerController implements Controller {
         String contents = req.getParameter("contents");
         Long questionId = Long.parseLong(req.getParameter("questionId"));
 
-        logger.debug("addAnswer reqeust. writer={}, contents={}, questionId = {}, requestUset = {}",
+        logger.debug("[addAnswer reqeust] writer={}, contents={}, questionId = {}, requestUset = {}",
                      writer, contents, questionId, req.getSession().getAttribute("user"));
 
         AnswerDao answerDao = new AnswerDao();
