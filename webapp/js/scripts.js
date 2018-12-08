@@ -1,5 +1,7 @@
 // $(".qna-comment").on("click", ".answerWrite input[type=submit]", addAnswer);
 $(".answerWrite input[type=submit]").click(addAnswer);
+$(".qna-comment").on("click", ".form-delete", deleteAnswer);
+
 
 function addAnswer(e) {
   e.preventDefault();
@@ -38,3 +40,36 @@ String.prototype.format = function() {
         ;
   });
 };
+
+
+function deleteAnswer(e) {
+  e.preventDefault();
+
+  var deleteBtn = $(this);
+  var queryString = deleteBtn.closest("form").serialize();
+
+  $.ajax({
+           type : 'post',
+           url : '/api/qna/deleteAnswer',
+           data : queryString,
+           dataType : 'json',
+           error: onError,
+           success : function(json, status) {
+             var count = $("p.qna-comment-count strong").text();
+
+             if (json.result) {
+               $("p.qna-comment-count strong").html(count-1);
+               deleteBtn.closest('article').remove();
+             }
+           },
+         });
+}
+
+function onSuccessDelete(json, status) {
+  var count = $("p.qna-comment-count strong").text();
+
+  if (json.result) {
+    $("p.qna-comment-count strong").html(count-1);
+    $(this).closest('article').remove();
+  }
+}
