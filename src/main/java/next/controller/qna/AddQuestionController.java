@@ -8,8 +8,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import core.mvc.AbstractController;
 import core.mvc.JspView;
 import core.mvc.ModelAndView;
+import next.controller.UserSessionUtils;
 import next.dao.QuestionDao;
 import next.model.Question;
+import next.model.User;
 
 public class AddQuestionController extends AbstractController {
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -17,7 +19,11 @@ public class AddQuestionController extends AbstractController {
 
     @Override
     public ModelAndView execute(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String writer = request.getParameter("writer");
+        if (!UserSessionUtils.isLogined(request.getSession())) {
+            return jspView("redirect:/users/loginForm");
+        }
+
+        String writer = ((User)(request.getSession().getAttribute("user"))).getName();
         String title = request.getParameter("title");
         String contents = request.getParameter("contents");
 
