@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import next.model.Answer;
 import core.jdbc.JdbcTemplate;
@@ -14,6 +15,7 @@ import core.jdbc.PreparedStatementCreator;
 import core.jdbc.RowMapper;
 
 public class AnswerDao {
+    private ReentrantLock lock = new ReentrantLock();
     public Answer insert(Answer answer) {
         JdbcTemplate jdbcTemplate = new JdbcTemplate();
         String sql = "INSERT INTO ANSWERS (writer, contents, createdDate, questionId) VALUES (?, ?, ?, ?)";
@@ -50,24 +52,34 @@ public class AnswerDao {
     }
 
     public List<Answer> findAllByQuestionId(long questionId) {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate();
-        String sql = "SELECT answerId, writer, contents, createdDate FROM ANSWERS WHERE questionId = ? "
-                + "order by answerId desc";
+        lock.lock();
+        try {
+            JdbcTemplate jdbcTemplate = new JdbcTemplate();
+            String sql = "SELECT answerId, writer, contents, createdDate FROM ANSWERS WHERE questionId = ? "
+                         + "order by answerId desc";
 
-        RowMapper<Answer> rm = new RowMapper<Answer>() {
-            @Override
-            public Answer mapRow(ResultSet rs) throws SQLException {
-                return new Answer(rs.getLong("answerId"), rs.getString("writer"), rs.getString("contents"),
-                        rs.getTimestamp("createdDate"), questionId);
-            }
-        };
+            RowMapper<Answer> rm = new RowMapper<Answer>() {
+                @Override
+                public Answer mapRow(ResultSet rs) throws SQLException {
+                    return new Answer(rs.getLong("answerId"), rs.getString("writer"), rs.getString("contents"),
+                                      rs.getTimestamp("createdDate"), questionId);
+                }
+            };
 
-        return jdbcTemplate.query(sql, rm, questionId);
+            return jdbcTemplate.query(sql, rm, questionId);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void delete(Long answerId) {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate();
-        String sql = "DELETE FROM ANSWERS WHERE answerId = ?";
-        jdbcTemplate.update(sql, answerId);
+        lock.lock();
+        try {
+            JdbcTemplate jdbcTemplate = new JdbcTemplate();
+            String sql = "DELETE FROM ANSWERS WHERE answerId = ?";
+            jdbcTemplate.update(sql, answerId);
+        } finally {
+            lock.unlock();
+        }
     }
 }

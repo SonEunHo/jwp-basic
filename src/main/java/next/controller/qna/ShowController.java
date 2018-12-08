@@ -24,6 +24,9 @@ public class ShowController extends AbstractController {
 
         question = questionDao.findById(questionId);
         answers = answerDao.findAllByQuestionId(questionId);
+        //delete와 보여주는걸 동시에 하고 있어서?
+        //퀘스챤이 지워지는 동안 해당 퀘스찬에 접근하면 안된다.
+        //
 
         ModelAndView mav = jspView("/qna/show.jsp");
         mav.addObject("question", question);
