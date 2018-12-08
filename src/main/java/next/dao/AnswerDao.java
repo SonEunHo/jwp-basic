@@ -15,9 +15,21 @@ import core.jdbc.PreparedStatementCreator;
 import core.jdbc.RowMapper;
 
 public class AnswerDao {
+    private static AnswerDao answerDao;
+
+    private AnswerDao() {
+        
+    }
+    
+    public static AnswerDao getInstance() {
+        if (answerDao == null) 
+            answerDao = new AnswerDao();
+        return answerDao;
+    }
+
     private static ReentrantLock lock = new ReentrantLock();
     public Answer insert(Answer answer) {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate();
+        JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
         String sql = "INSERT INTO ANSWERS (writer, contents, createdDate, questionId) VALUES (?, ?, ?, ?)";
         PreparedStatementCreator psc = new PreparedStatementCreator() {
             @Override
@@ -37,7 +49,7 @@ public class AnswerDao {
     }
 
     public Answer findById(long answerId) {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate();
+        JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
         String sql = "SELECT answerId, writer, contents, createdDate, questionId FROM ANSWERS WHERE answerId = ?";
 
         RowMapper<Answer> rm = new RowMapper<Answer>() {
@@ -54,7 +66,7 @@ public class AnswerDao {
     public List<Answer> findAllByQuestionId(long questionId) {
         lock.lock();
         try {
-            JdbcTemplate jdbcTemplate = new JdbcTemplate();
+            JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
             String sql = "SELECT answerId, writer, contents, createdDate FROM ANSWERS WHERE questionId = ? "
                          + "order by answerId desc";
 
@@ -75,7 +87,7 @@ public class AnswerDao {
     public void delete(Long answerId) {
         lock.lock();
         try {
-            JdbcTemplate jdbcTemplate = new JdbcTemplate();
+            JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
             String sql = "DELETE FROM ANSWERS WHERE answerId = ?";
             jdbcTemplate.update(sql, answerId);
         } finally {

@@ -13,9 +13,22 @@ import core.jdbc.PreparedStatementCreator;
 import core.jdbc.RowMapper;
 import next.model.Question;
 
+//enum으로 만들면 베스트. 하지만 귀찮.
 public class QuestionDao {
+    private static QuestionDao questionDao;
+
+    private QuestionDao() {
+    }
+
+    public static QuestionDao getInstance() {
+        if(questionDao == null) {
+            questionDao = new QuestionDao();
+        }
+        return questionDao;
+    }
+
     public Question insert(Question question) {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate();
+        JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
         String sql = "INSERT INTO QUESTIONS " + 
                 "(writer, title, contents, createdDate) " + 
                 " VALUES (?, ?, ?, ?)";
@@ -37,7 +50,7 @@ public class QuestionDao {
     }
     
     public List<Question> findAll() {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate();
+        JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
         String sql = "SELECT questionId, writer, title, createdDate, countOfAnswer FROM QUESTIONS "
                 + "order by questionId desc";
 
@@ -54,7 +67,7 @@ public class QuestionDao {
     }
 
     public Question findById(long questionId) {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate();
+        JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
         String sql = "SELECT questionId, writer, title, contents, createdDate, countOfAnswer FROM QUESTIONS "
                 + "WHERE questionId = ?";
 
@@ -70,7 +83,7 @@ public class QuestionDao {
     }
 
     public void update(Question question) {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate();
+        JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
         String sql = "UPDATE questions SET title=?, contents=? WHERE questionId=?";
 
         jdbcTemplate.update(sql, question.getTitle(), question.getContents(), question.getQuestionId());

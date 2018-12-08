@@ -15,7 +15,7 @@ import sun.plugin.dom.exception.InvalidStateException;
 
 public class QuestionUpdateFormController extends AbstractController {
     private Logger logger = LoggerFactory.getLogger(QuestionUpdateFormController.class);
-    private QuestionDao questionDao = new QuestionDao();
+    private QuestionDao questionDao = QuestionDao.getInstance();
 
     @Override
     public ModelAndView execute(HttpServletRequest request, HttpServletResponse response) throws Exception {
