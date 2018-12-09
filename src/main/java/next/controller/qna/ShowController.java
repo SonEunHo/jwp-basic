@@ -15,15 +15,13 @@ import core.mvc.ModelAndView;
 public class ShowController extends AbstractController {
     private QuestionDao questionDao = QuestionDao.getInstance();
     private AnswerDao answerDao = AnswerDao.getInstance();
-    private Question question;
-    private List<Answer> answers;
 
     @Override
     public ModelAndView execute(HttpServletRequest req, HttpServletResponse response) throws Exception {
         Long questionId = Long.parseLong(req.getParameter("questionId"));
 
-        question = questionDao.findById(questionId);
-        answers = answerDao.findAllByQuestionId(questionId);
+        Question question = questionDao.findById(questionId);
+        List<Answer> answers = answerDao.findAllByQuestionId(questionId);
         //delete와 보여주는걸 동시에 하고 있어서?
         //퀘스챤이 지워지는 동안 해당 퀘스찬에 접근하면 안된다.
         //
