@@ -13,6 +13,11 @@ public class QuestionService {
     private QuestionDao questionDao = QuestionDao.getInstance();
     private AnswerDao answerDao = AnswerDao.getInstance();
 
+    public QuestionService(QuestionDao questionDao, AnswerDao answerDao) {
+        this.questionDao = questionDao;
+        this.answerDao = answerDao;
+    }
+
     public Result deleteQuestion(User currentUser, long questionId) throws Exception {
         Question question = questionDao.findById(questionId);
 

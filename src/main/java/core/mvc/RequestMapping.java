@@ -20,6 +20,10 @@ import next.controller.user.LogoutController;
 import next.controller.user.ProfileController;
 import next.controller.user.UpdateFormUserController;
 import next.controller.user.UpdateUserController;
+import next.dao.AnswerDao;
+import next.dao.QuestionDao;
+import next.dao.UserDao;
+import next.service.QuestionService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,13 +36,13 @@ public class RequestMapping {
         mappings.put("/", new HomeController());
         mappings.put("/users/form", new ForwardController("/user/form.jsp"));
         mappings.put("/users/loginForm", new ForwardController("/user/login.jsp"));
-        mappings.put("/users", new ListUserController());
-        mappings.put("/users/login", new LoginController());
-        mappings.put("/users/profile", new ProfileController());
+        mappings.put("/users", new ListUserController(userDao()));
+        mappings.put("/users/login", new LoginController(userDao()));
+        mappings.put("/users/profile", new ProfileController(userDao()));
         mappings.put("/users/logout", new LogoutController());
-        mappings.put("/users/create", new CreateUserController());
-        mappings.put("/users/updateForm", new UpdateFormUserController());
-        mappings.put("/users/update", new UpdateUserController());
+        mappings.put("/users/create", new CreateUserController(userDao()));
+        mappings.put("/users/updateForm", new UpdateFormUserController(userDao()));
+        mappings.put("/users/update", new UpdateUserController(userDao()));
         mappings.put("/qna/form", new ForwardController("/qna/form.jsp"));
         mappings.put("/qna/updateForm", new QuestionUpdateFormController());
         mappings.put("/qna/show", new ShowController());
@@ -46,11 +50,27 @@ public class RequestMapping {
         mappings.put("/api/qna/addAnswer", new AddAnswerController());
         mappings.put("/api/qna/deleteAnswer", new DeleteAnswerController());
         mappings.put("/api/qna/list", new QuestsionListController());
-        mappings.put("/api/qna/delete", new DeleteQuestionApiController());
+        mappings.put("/api/qna/delete", new DeleteQuestionApiController(questionService()));
         mappings.put("/qna/update", new UpdateQuestionController());
-        mappings.put("/qna/delete", new DeleteQuestionController());
+        mappings.put("/qna/delete", new DeleteQuestionController(questionService()));
 
         logger.info("Initialized Request Mapping!");
+    }
+
+    public AnswerDao answerDao() {
+        return AnswerDao.getInstance();
+    }
+
+    public QuestionDao questionDao() {
+        return QuestionDao.getInstance();
+    }
+
+    public UserDao userDao() {
+        return new UserDao();
+    }
+
+    public QuestionService questionService() {
+        return new QuestionService(questionDao(), answerDao());
     }
 
     public Controller findController(String url) {

@@ -10,12 +10,16 @@ import core.mvc.AbstractController;
 import core.mvc.ModelAndView;
 
 public class LoginController extends AbstractController {
+    private UserDao userDao;
+    public LoginController(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
     @Override
     public ModelAndView execute(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String userId = request.getParameter("userId");
         String password = request.getParameter("password");
 
-        UserDao userDao = new UserDao();
         User user = userDao.findByUserId(userId);
 
         if (user == null) {

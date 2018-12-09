@@ -9,7 +9,11 @@ import next.model.User;
 import next.service.QuestionService;
 
 public class DeleteQuestionController extends AbstractController {
-    private QuestionService questionService = new QuestionService();
+    private QuestionService questionService;
+
+    public DeleteQuestionController(QuestionService questionService) {
+        this.questionService = questionService;
+    }
 
     @Override
     public ModelAndView execute(HttpServletRequest request, HttpServletResponse response) throws Exception {
