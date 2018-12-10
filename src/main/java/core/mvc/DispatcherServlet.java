@@ -31,6 +31,7 @@ public class DispatcherServlet extends HttpServlet {
         rm.initMapping();
 
         annotationHandlerMapping = new AnnotationHandlerMapping("core.nmvc");
+        annotationHandlerMapping.initialize();
     }
 
     @Override

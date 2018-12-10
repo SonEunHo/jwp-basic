@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,7 @@ import core.annotation.Controller;
 import core.annotation.RequestMapping;
 import core.annotation.RequestMethod;
 import core.mvc.ModelAndView;
+import sun.plugin.dom.exception.InvalidStateException;
 
 public class AnnotationHandlerMapping {
     private Object[] basePackage;
@@ -36,28 +38,21 @@ public class AnnotationHandlerMapping {
     }
 
     private Map<HandlerKey, HandlerExecution> makeHandlerMapFromPackage(Object pack) {
-        Map<HandlerKey, HandlerExecution> ret = Maps.newHashMap();
+        try {
+            Map<HandlerKey, HandlerExecution> ret = Maps.newHashMap();
+            Reflections reflections = new Reflections(pack);
 
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        URL url = cl.getResource(((String)pack).replaceAll("\\.", "/"));
-
-        File packageFile  = new File(url.getPath());
-        for(String childFileName : packageFile.list()) {
-            if(childFileName.endsWith(".class")) {
-                try {
-                    Class controllerClasss = Class.forName(pack+"."+childFileName.substring(0, childFileName.lastIndexOf(".class")));
-                    ret.putAll(makeHandlerMapFromController(controllerClasss));
-                } catch (Exception e) {
-
-                }
+            for (Class controller : reflections.getTypesAnnotatedWith(Controller.class)) {
+                ret.putAll(makeHandlerMapFromController(controller));
             }
+            return ret;
+        } catch (Exception e) {
+            throw new InvalidStateException("fail to build request map. errMsg = "+e.getMessage());
         }
-
-        return ret;
     }
 
     public Map<HandlerKey, HandlerExecution> makeHandlerMapFromController(Class controller) throws IllegalAccessException, InstantiationException{
-        if(controller == null || controller.getAnnotation(Controller.class) == null) {
+        if(controller == null || !controller.isAnnotationPresent(Controller.class)) {
             return Collections.emptyMap();
         }
 
@@ -72,14 +67,20 @@ public class AnnotationHandlerMapping {
         Object c = controller.newInstance();
 
         for(Method m : controller.getMethods()) {
-            RequestMapping methodRequestMapping = m.getAnnotation(RequestMapping.class);
-            if(methodRequestMapping == null) continue;
-            String requestPostfix = methodRequestMapping.value();
-            RequestMethod method = methodRequestMapping.method();
-            ret.put(new HandlerKey(prefix+requestPostfix, method), makeHandlerExecution(m, c));
+            if(!m.isAnnotationPresent(RequestMapping.class)) {continue;}
+            HandlerKey key = makeHandlerKey(prefix, m.getAnnotation(RequestMapping.class));
+            HandlerExecution execution = makeHandlerExecution(m, c);
+            logger.debug("[Add to ReqeustMap] key = {}, controller={}, method={}", key, controller.getName(), m.getName());
+            ret.put(key, execution);
         }
 
         return ret;
+    }
+
+    private HandlerKey makeHandlerKey(String prefix, RequestMapping requestMapping) {
+        String requestPostfix = requestMapping.value();
+        RequestMethod method = requestMapping.method();
+        return new HandlerKey(prefix+requestPostfix, method);
     }
 
     private HandlerExecution makeHandlerExecution(Method m, Object controller) {
