@@ -1,11 +1,10 @@
 package core.nmvc;
 
-import java.io.File;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.Collections;
 import java.util.Map;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +18,6 @@ import core.annotation.Controller;
 import core.annotation.RequestMapping;
 import core.annotation.RequestMethod;
 import core.mvc.ModelAndView;
-import sun.plugin.dom.exception.InvalidStateException;
 
 public class AnnotationHandlerMapping {
     private Object[] basePackage;
@@ -47,8 +45,10 @@ public class AnnotationHandlerMapping {
             }
             return ret;
         } catch (Exception e) {
-            throw new InvalidStateException("fail to build request map. errMsg = "+e.getMessage());
+            logger.error("fail to build request map.", e);
+//            throw new ServletException("fail to build request map. errMsg = " + e.getMessage());
         }
+        return Collections.emptyMap();
     }
 
     public Map<HandlerKey, HandlerExecution> makeHandlerMapFromController(Class controller) throws IllegalAccessException, InstantiationException{
@@ -67,10 +67,11 @@ public class AnnotationHandlerMapping {
         Object c = controller.newInstance();
 
         for(Method m : controller.getMethods()) {
-            if(!m.isAnnotationPresent(RequestMapping.class)) {continue;}
+            if (!m.isAnnotationPresent(RequestMapping.class)) {continue;}
             HandlerKey key = makeHandlerKey(prefix, m.getAnnotation(RequestMapping.class));
             HandlerExecution execution = makeHandlerExecution(m, c);
-            logger.debug("[Add to ReqeustMap] key = {}, controller={}, method={}", key, controller.getName(), m.getName());
+            logger.debug("[Add to ReqeustMap] key = {}, controller={}, method={}", key, controller.getName(),
+                         m.getName());
             ret.put(key, execution);
         }
 
