@@ -1,6 +1,7 @@
 package core.nmvc;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -14,6 +15,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
+import core.annotation.Controller;
+import core.annotation.Service;
+import core.di.factory.BeanFactory;
+import core.di.factory.BeanScanner;
 import core.mvc.ControllerHandlerAdapter;
 import core.mvc.LegacyHandlerMapping;
 import core.mvc.ModelAndView;
@@ -27,6 +32,9 @@ public class DispatcherServlet extends HttpServlet {
     private List<HandlerMapping> mappings = Lists.newArrayList();
     private List<HandlerAdapter> handlerAdapters = Lists.newArrayList();
 
+    private final Class<? extends Annotation>[] beanAnnotations = new Class[] { Controller.class, Service.class, Service.class };
+    private BeanFactory beanFactory;
+
     @Override
     public void init() throws ServletException {
         LegacyHandlerMapping lhm = new LegacyHandlerMapping();
@@ -39,6 +47,14 @@ public class DispatcherServlet extends HttpServlet {
 
         handlerAdapters.add(new ControllerHandlerAdapter());
         handlerAdapters.add(new HandlerExecutionHandlerAdapter());
+
+        BeanScanner beanScanner = new BeanScanner(beanAnnotations, "next.controller", "next.dao", "next.service");
+        beanFactory = new BeanFactory(beanScanner.getAllBeanTypes());
+        try {
+            beanFactory.initialize();
+        } catch (Exception e) {
+            new ServletException(e.getMessage());
+        }
     }
 
     @Override

@@ -1,11 +1,14 @@
 package core.di.factory;
 
+import java.lang.reflect.Constructor;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class BeanFactory {
@@ -24,7 +27,33 @@ public class BeanFactory {
         return (T) beans.get(requiredType);
     }
 
-    public void initialize() {
+    public void initialize() throws Exception {
+        for (Class<?> beanType: preInstanticateBeans ) {
+            createBean(beanType);
+        }
+    }
 
+    public void createBean(Class<?> beanType) throws Exception {
+        Constructor<?> constructor = BeanFactoryUtils.getInjectedConstructor(beanType);
+
+        if(constructor == null) {
+            beans.put(beanType, beanType.newInstance());
+            return;
+        }
+
+        List<Object> params = Lists.newArrayList();
+
+        for(Class<?> paramBean : constructor.getParameterTypes()) {
+            Class<?> concreteParamType = BeanFactoryUtils
+                    .findConcreteClass(paramBean, preInstanticateBeans);
+
+            if(!beans.containsKey(concreteParamType)) {
+                createBean(concreteParamType);
+            }
+
+            params.add(beans.get(concreteParamType));
+        }
+
+        beans.put(beanType, constructor.newInstance(params.toArray()));
     }
 }
