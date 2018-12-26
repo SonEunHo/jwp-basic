@@ -1,9 +1,12 @@
 package core.di.factory;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,5 +58,11 @@ public class BeanFactory {
         }
 
         beans.put(beanType, constructor.newInstance(params.toArray()));
+    }
+
+    public Set<Class<?>> getAnnotatedBeans(Class<? extends Annotation> annotation) {
+        return beans.keySet().stream().filter(e->
+            e.isAnnotationPresent(annotation)
+        ).collect(Collectors.toSet());
     }
 }

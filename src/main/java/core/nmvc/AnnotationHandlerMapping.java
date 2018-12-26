@@ -13,29 +13,33 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import core.annotation.Controller;
 import core.annotation.RequestMapping;
 import core.annotation.RequestMethod;
+import core.di.factory.BeanFactory;
 
 public class AnnotationHandlerMapping implements HandlerMapping {
     private static final Logger logger = LoggerFactory.getLogger(AnnotationHandlerMapping.class);
 
-    private Object[] basePackage;
-
+    private BeanFactory beanFactory;
     private Map<HandlerKey, HandlerExecution> handlerExecutions = Maps.newHashMap();
 
-    public AnnotationHandlerMapping(Object... basePackage) {
-        this.basePackage = basePackage;
+    public AnnotationHandlerMapping(BeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
     }
 
+    /**
+     * beanScanner를 넘겨받아서 여기서 controller 빈을 생성하는 것을 원하는 것 같은데,
+     * 디스패처 서블릿에서 모든 빈을 생성해두고 이걸 가져다 쓰는 방식이 좋지 않을까.
+     */
     public void initialize() {
-        ControllerScanner controllerScanner = new ControllerScanner(basePackage);
-        Map<Class<?>, Object> controllers = controllerScanner.getControllers();
-        Set<Method> methods = getRequestMappingMethods(controllers.keySet());
+        Set<Class<?>> controllers = beanFactory.getAnnotatedBeans(Controller.class);
+        Set<Method> methods = getRequestMappingMethods(controllers);
         for (Method method : methods) {
             RequestMapping rm = method.getAnnotation(RequestMapping.class);
             logger.debug("register handlerExecution : url is {}, method is {}", rm.value(), method);
             handlerExecutions.put(createHandlerKey(rm),
-                    new HandlerExecution(controllers.get(method.getDeclaringClass()), method));
+                    new HandlerExecution(beanFactory.getBean(method.getDeclaringClass()), method));
         }
 
         logger.info("Initialized AnnotationHandlerMapping!");
