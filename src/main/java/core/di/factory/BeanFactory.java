@@ -11,8 +11,14 @@ import org.springframework.beans.BeanUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import core.annotation.Controller;
+import core.di.factory.initiator.AbstractBeanInjector;
+import core.di.factory.initiator.ConstructorInjector;
+import core.di.factory.initiator.FieldInjector;
+import core.di.factory.initiator.Injector;
+import core.di.factory.initiator.MethodInjector;
 
 public class BeanFactory {
     private static final Logger logger = LoggerFactory.getLogger(BeanFactory.class);
@@ -20,6 +26,7 @@ public class BeanFactory {
     private Set<Class<?>> preInstanticateBeans;
 
     private Map<Class<?>, Object> beans = Maps.newHashMap();
+    private List<Injector> injectors = Lists.newArrayList();
 
     public BeanFactory(Set<Class<?>> preInstanticateBeans) {
         this.preInstanticateBeans = preInstanticateBeans;
@@ -31,6 +38,10 @@ public class BeanFactory {
     }
 
     public void initialize() {
+        injectors.add(new ConstructorInjector(this));
+        injectors.add(new MethodInjector(this));
+        injectors.add(new FieldInjector(this));
+
         for (Class<?> clazz : preInstanticateBeans) {
             if (beans.get(clazz) == null) {
                 logger.debug("instantiated Class : {}", clazz);
@@ -45,35 +56,8 @@ public class BeanFactory {
             return bean;
         }
 
-        Constructor<?> injectedConstructor = BeanFactoryUtils.getInjectedConstructor(clazz);
-        if (injectedConstructor == null) {
-            bean = BeanUtils.instantiate(clazz);
-            beans.put(clazz, bean);
-            return bean;
-        }
-
-        logger.debug("Constructor : {}", injectedConstructor);
-        bean = instantiateConstructor(injectedConstructor);
-        beans.put(clazz, bean);
+        bean = ((AbstractBeanInjector)injectors.get(0)).instantiateClass(clazz);
         return bean;
-    }
-
-    private Object instantiateConstructor(Constructor<?> constructor) {
-        Class<?>[] pTypes = constructor.getParameterTypes();
-        List<Object> args = Lists.newArrayList();
-        for (Class<?> clazz : pTypes) {
-            Class<?> concreteClazz = BeanFactoryUtils.findConcreteClass(clazz, preInstanticateBeans);
-            if (!preInstanticateBeans.contains(concreteClazz)) {
-                throw new IllegalStateException(clazz + "는 Bean이 아니다.");
-            }
-
-            Object bean = beans.get(concreteClazz);
-            if (bean == null) {
-                bean = instantiateClass(concreteClazz);
-            }
-            args.add(bean);
-        }
-        return BeanUtils.instantiateClass(constructor, args.toArray());
     }
 
     public Map<Class<?>, Object> getControllers() {
@@ -84,5 +68,13 @@ public class BeanFactory {
             }
         }
         return controllers;
+    }
+
+    public Class<?> getConcreteClassType(Class<?> clazz) {
+        return BeanFactoryUtils.findConcreteClass(clazz, preInstanticateBeans);
+    }
+
+    public void addBean(Class<?> clazz, Object bean) {
+        beans.put(clazz, bean);
     }
 }
