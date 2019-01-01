@@ -2,6 +2,9 @@ package core.di.factory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,7 +57,9 @@ public class BeanFactory implements BeanDefinitionRegistry {
     }
 
     private Object inject(BeanDefinition beanDefinition) {
-        if (beanDefinition.getResolvedInjectMode() == InjectType.INJECT_NO) {
+        if (beanDefinition.getResolvedInjectMode() == InjectType.INJECT_CONFIGURATION) {
+            return injectByConfiguration(beanDefinition);
+        } else if (beanDefinition.getResolvedInjectMode() == InjectType.INJECT_NO) {
             return BeanUtils.instantiate(beanDefinition.getBeanClass());
         } else if (beanDefinition.getResolvedInjectMode() == InjectType.INJECT_FIELD) {
             return injectFields(beanDefinition);
@@ -70,6 +75,18 @@ public class BeanFactory implements BeanDefinitionRegistry {
             args.add(getBean(clazz));
         }
         return BeanUtils.instantiateClass(constructor, args.toArray());
+    }
+
+    private Object injectByConfiguration(BeanDefinition beanDefinition) {
+        Method configuration = beanDefinition.getBeanConfiguration();
+        Object confObject = beanDefinition.getConfigurationObject();
+        Object[] params = Arrays.stream(configuration.getParameterTypes()).map(beans::get).toArray();
+        try {
+            return configuration.invoke(confObject, params);
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            log.error("failed to make bean by configuration : {}", e.getMessage());
+            return null;
+        }
     }
 
     private Object injectFields(BeanDefinition beanDefinition) {

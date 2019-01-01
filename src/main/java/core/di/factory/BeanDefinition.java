@@ -11,11 +11,19 @@ public class BeanDefinition {
     private Class<?> beanClazz;
     private Constructor<?> injectConstructor;
     private Set<Field> injectFields;
+    private Method beanConfiguration;
+    private Object configurationObject;
 
     public BeanDefinition(Class<?> clazz) {
         this.beanClazz = clazz;
         injectConstructor = getInjectConstructor(clazz);
         injectFields = getInjectFields(clazz, injectConstructor);
+    }
+
+    public BeanDefinition(Class<?> clazz, Method beanConfiguration, Object configurationObject) {
+        this.beanClazz = clazz;
+        this.beanConfiguration = beanConfiguration;
+        this.configurationObject = configurationObject;
     }
 
     private static Constructor<?> getInjectConstructor(Class<?> clazz) {
@@ -69,7 +77,19 @@ public class BeanDefinition {
         return this.beanClazz;
     }
 
+    public Method getBeanConfiguration() {
+        return beanConfiguration;
+    }
+
+    public Object getConfigurationObject() {
+        return configurationObject;
+    }
+
     public InjectType getResolvedInjectMode() {
+        if (beanConfiguration != null) {
+            return InjectType.INJECT_CONFIGURATION;
+        }
+
         if (injectConstructor != null) {
             return InjectType.INJECT_CONSTRUCTOR;
         }

@@ -11,15 +11,17 @@ import core.annotation.Controller;
 import core.annotation.Repository;
 import core.annotation.Service;
 
-public class ClasspathBeanDefinitionScanner {
+public class ClasspathBeanDefinitionScanner implements BeanDefinitionScanner {
     private final BeanDefinitionRegistry beanDefinitionRegistry;
-
-    public ClasspathBeanDefinitionScanner(BeanDefinitionRegistry beanDefinitionRegistry) {
+    private final Object[] basePackages;
+    public ClasspathBeanDefinitionScanner(BeanDefinitionRegistry beanDefinitionRegistry, Object... basePackages) {
         this.beanDefinitionRegistry = beanDefinitionRegistry;
+        this.basePackages = basePackages;
     }
 
     @SuppressWarnings("unchecked")
-    public void doScan(Object... basePackages) {
+    @Override
+    public void doScan() {
         Reflections reflections = new Reflections(basePackages);
         Set<Class<?>> beanClasses = getTypesAnnotatedWith(reflections, Controller.class, Service.class,
                 Repository.class);

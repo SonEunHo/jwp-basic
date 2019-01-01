@@ -2,10 +2,14 @@ package core.di.factory;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.lang.annotation.Target;
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import core.di.factory.example.ConfiguraionTestClass;
 import core.di.factory.example.MyQnaService;
 import core.di.factory.example.MyUserController;
 import core.di.factory.example.MyUserService;
@@ -17,9 +21,17 @@ public class BeanFactoryTest {
     @Before
     public void setup() {
         beanFactory = new BeanFactory();
-        ClasspathBeanDefinitionScanner scanner = new ClasspathBeanDefinitionScanner(beanFactory);
-        scanner.doScan("core.di.factory.example");
+        Arrays.asList(
+                new ClasspathBeanDefinitionScanner(beanFactory, "core.di.factory.example"),
+                new JavaConfigurationBeanDefinitionScanner(beanFactory)
+        ).forEach(s-> s.doScan());
         beanFactory.initialize();
+    }
+
+    @Test
+    public void configurationDI() throws Exception {
+        ConfiguraionTestClass testClass = beanFactory.getBean(ConfiguraionTestClass.class);
+        assertNotNull(testClass);
     }
 
     @Test
